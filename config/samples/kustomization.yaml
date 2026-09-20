@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- autolock_v1alpha1_autolock.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

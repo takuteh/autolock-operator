@@ -1,0 +1,9 @@
+apiVersion: autolock.takuteh.uk/v1alpha1
+kind: Autolock
+metadata:
+  labels:
+    app.kubernetes.io/name: autolock-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: autolock-sample
+spec:
+  # TODO(user): Add fields here
