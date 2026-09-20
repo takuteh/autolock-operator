@@ -1,9 +1,20 @@
 apiVersion: autolock.takuteh.uk/v1alpha1
 kind: Autolock
 metadata:
-  labels:
-    app.kubernetes.io/name: autolock-operator
-    app.kubernetes.io/managed-by: kustomize
   name: autolock-sample
 spec:
-  # TODO(user): Add fields here
+  main:
+    config:
+      autolock: true
+      timeout_seq: 300
+      ignore_clsw: false
+      rotate_direction: "left"
+      authorize_internal_users: false
+      authorize_external_users: true
+    replicas: 1
+
+  webapp:
+    replicas: 3
+
+  mqtt:
+    replicas: 3

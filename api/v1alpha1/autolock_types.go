@@ -36,7 +36,7 @@ type MainSpec struct {
 }
 
 type MainConfig struct {
-    AutoLock bool               `json:"auto_lock"`
+    AutoLock bool               `json:"autolock"`
     TimeoutSeq  int             `json:"timeout_seq"`
 	IgnoreClsw bool             `json:"ignore_clsw"`
 	RotateDirection string      `json:"rotate_direction"`

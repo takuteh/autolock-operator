@@ -47,7 +47,7 @@ spec:
                         type: boolean
                       authorize_internal_users:
                         type: boolean
-                      auto_lock:
+                      autolock:
                         type: boolean
                       ignore_clsw:
                         type: boolean
@@ -58,7 +58,7 @@ spec:
                     required:
                     - authorize_external_users
                     - authorize_internal_users
-                    - auto_lock
+                    - autolock
                     - ignore_clsw
                     - rotate_direction
                     - timeout_seq
