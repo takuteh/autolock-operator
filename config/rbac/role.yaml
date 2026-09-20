@@ -1,11 +1,32 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/name: autolock-operator
-    app.kubernetes.io/managed-by: kustomize
   name: manager-role
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/status
+  verbs:
+  - get
+  - patch
+  - update

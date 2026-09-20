@@ -1,0 +1,90 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: autolocks.autolock.takuteh.uk
+spec:
+  group: autolock.takuteh.uk
+  names:
+    kind: Autolock
+    listKind: AutolockList
+    plural: autolocks
+    singular: autolock
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Autolock is the Schema for the autolocks API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AutolockSpec defines the desired state of Autolock.
+            properties:
+              main:
+                properties:
+                  config:
+                    properties:
+                      authorize_external_users:
+                        type: boolean
+                      authorize_internal_users:
+                        type: boolean
+                      auto_lock:
+                        type: boolean
+                      ignore_clsw:
+                        type: boolean
+                      rotate_direction:
+                        type: string
+                      timeout_seq:
+                        type: integer
+                    required:
+                    - authorize_external_users
+                    - authorize_internal_users
+                    - auto_lock
+                    - ignore_clsw
+                    - rotate_direction
+                    - timeout_seq
+                    type: object
+                  replicas:
+                    format: int32
+                    type: integer
+                type: object
+              mqtt:
+                properties:
+                  replicas:
+                    format: int32
+                    type: integer
+                type: object
+              webapp:
+                properties:
+                  replicas:
+                    format: int32
+                    type: integer
+                type: object
+            type: object
+          status:
+            description: AutolockStatus defines the observed state of Autolock.
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
