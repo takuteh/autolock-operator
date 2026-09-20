@@ -47,9 +47,23 @@ type AutolockReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	log.Info("Reconcile start",
+		"name", req.Name,
+		"namespace", req.Namespace,
+	)
+	var autolock autolockv1alpha1.Autolock
+
+	if err := r.Get(ctx, req.NamespacedName, &autolock); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	log.Info("Autolock CR",
+		"name", autolock.Name,
+		"namespace", autolock.Namespace,
+		"spec", autolock.Spec,
+	)
 
 	return ctrl.Result{}, nil
 }

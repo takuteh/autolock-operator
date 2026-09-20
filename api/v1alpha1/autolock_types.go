@@ -25,31 +25,31 @@ import (
 
 // AutolockSpec defines the desired state of Autolock.
 type AutolockSpec struct {
-    Webapp WebappSpec `json:"webapp,omitempty"`
-    Main   MainSpec   `json:"main,omitempty"`
-    MQTT   MQTTSpec   `json:"mqtt,omitempty"`
+	Webapp WebappSpec `json:"webapp,omitempty"`
+	Main   MainSpec   `json:"main,omitempty"`
+	MQTT   MQTTSpec   `json:"mqtt,omitempty"`
 }
 
 type MainSpec struct {
-    Config MainConfig `json:"config,omitempty"`
-	Replicas int32  `json:"replicas,omitempty"`
+	Config   MainConfig `json:"config,omitempty"`
+	Replicas int32      `json:"replicas,omitempty"`
 }
 
 type MainConfig struct {
-    AutoLock bool               `json:"autolock"`
-    TimeoutSeq  int             `json:"timeout_seq"`
-	IgnoreClsw bool             `json:"ignore_clsw"`
-	RotateDirection string      `json:"rotate_direction"`
-	AuthorizeInternalUsers bool `json:"authorize_internal_users"`
-	AuthorizeExternalUsers bool `json:"authorize_external_users"`
+	AutoLock               bool   `json:"autolock"`
+	TimeoutSeq             int    `json:"timeout_seq"`
+	IgnoreClsw             bool   `json:"ignore_clsw"`
+	RotateDirection        string `json:"rotate_direction"`
+	AuthorizeInternalUsers bool   `json:"authorize_internal_users"`
+	AuthorizeExternalUsers bool   `json:"authorize_external_users"`
 }
 
-type WebappSpec struct{
-	Replicas int32  `json:"replicas,omitempty"`
+type WebappSpec struct {
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
-type MQTTSpec struct{
-	Replicas int32  `json:"replicas,omitempty"`
+type MQTTSpec struct {
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // AutolockStatus defines the observed state of Autolock.
