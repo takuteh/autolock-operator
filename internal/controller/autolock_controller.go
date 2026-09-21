@@ -26,6 +26,7 @@ import (
 
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
+	"encoding/json"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -58,6 +59,7 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	)
 	var autolock autolockv1alpha1.Autolock
 
+	//CRを取得しautolock変数に格納
 	if err := r.Get(ctx, req.NamespacedName, &autolock); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -68,13 +70,20 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		"spec", autolock.Spec,
 	)
 
+	//CRから取得したmain設定をjson化し,jsonDataに格納
+	jsonData, err := json.Marshal(autolock.Spec.Main.Config)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	//main設定用cmを作成
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-config",
 			Namespace: autolock.Namespace,
 		},
 		Data: map[string]string{
-			"test.txt": "hello",
+			"autolock_setting.json": string(jsonData),
 		},
 	}
 
