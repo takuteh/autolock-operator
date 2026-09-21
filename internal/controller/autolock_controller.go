@@ -25,6 +25,9 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // AutolockReconciler reconciles a Autolock object
@@ -64,6 +67,20 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		"namespace", autolock.Namespace,
 		"spec", autolock.Spec,
 	)
+
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "autolock-config",
+			Namespace: autolock.Namespace,
+		},
+		Data: map[string]string{
+			"test.txt": "hello",
+		},
+	}
+
+	if err := r.Create(ctx, configMap); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
