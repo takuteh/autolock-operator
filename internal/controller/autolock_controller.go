@@ -28,7 +28,9 @@ import (
 
 	"encoding/json"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // AutolockReconciler reconciles a Autolock object
@@ -87,7 +89,34 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		},
 	}
 
-	if err := r.Create(ctx, configMap); err != nil {
+	//クラスタからcmを取得
+	var existing corev1.ConfigMap
+	err = r.Get(
+		ctx,
+		types.NamespacedName{
+			Name:      "autolock-config",
+			Namespace: autolock.Namespace,
+		},
+		&existing,
+	)
+
+	//存在しなければ作成
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = r.Create(ctx, configMap); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			return ctrl.Result{}, nil
+		}
+
+		return ctrl.Result{}, err
+	}
+
+	// 存在する → 更新
+	existing.Data = configMap.Data
+
+	if err := r.Update(ctx, &existing); err != nil {
 		return ctrl.Result{}, err
 	}
 
