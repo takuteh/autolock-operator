@@ -11,7 +11,7 @@ spec:
       rotate_direction: "left"
       authorize_internal_users: false
       authorize_external_users: true
-    replicas: 1
+    replicas: 2
     image: nginx
 
   webapp:
