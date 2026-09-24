@@ -175,7 +175,33 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		},
 	}
 
-	if err := r.Create(ctx, deployment); err != nil {
+	//クラスタからdeploymentを取得
+	var existingDeployment appsv1.Deployment
+	err = r.Get(
+		ctx,
+		types.NamespacedName{
+			Name:      "autolock-main",
+			Namespace: autolock.Namespace,
+		},
+		&existingDeployment,
+	)
+	//存在しなければ作成
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = r.Create(ctx, deployment); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			return ctrl.Result{}, nil
+		}
+
+		return ctrl.Result{}, err
+	}
+
+	// 存在する → 更新
+	existingDeployment.Spec = deployment.Spec
+
+	if err := r.Update(ctx, &existingDeployment); err != nil {
 		return ctrl.Result{}, err
 	}
 
