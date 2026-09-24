@@ -13,6 +13,14 @@ rules:
   - get
   - update
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
   - autolock.takuteh.uk
   resources:
   - autolocks
