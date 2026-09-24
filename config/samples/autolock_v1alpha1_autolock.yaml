@@ -12,6 +12,7 @@ spec:
       authorize_internal_users: false
       authorize_external_users: true
     replicas: 1
+    image: nginx
 
   webapp:
     replicas: 3

@@ -145,7 +145,7 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Containers: []corev1.Container{
 						{
 							Name:  "autolock",
-							Image: "nginx",
+							Image: autolock.Spec.Main.Image,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privileged,
 							},

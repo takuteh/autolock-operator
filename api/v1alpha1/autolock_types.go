@@ -31,6 +31,7 @@ type AutolockSpec struct {
 }
 
 type MainSpec struct {
+	Image    string     `json:"image"`
 	Config   MainConfig `json:"config,omitempty"`
 	Replicas int32      `json:"replicas,omitempty"`
 }
@@ -45,11 +46,13 @@ type MainConfig struct {
 }
 
 type WebappSpec struct {
-	Replicas int32 `json:"replicas,omitempty"`
+	Image    string `json:"image"`
+	Replicas int32  `json:"replicas,omitempty"`
 }
 
 type MQTTSpec struct {
-	Replicas int32 `json:"replicas,omitempty"`
+	Image    string `json:"image"`
+	Replicas int32  `json:"replicas,omitempty"`
 }
 
 // AutolockStatus defines the observed state of Autolock.

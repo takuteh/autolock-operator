@@ -63,21 +63,33 @@ spec:
                     - rotate_direction
                     - timeout_seq
                     type: object
+                  image:
+                    type: string
                   replicas:
                     format: int32
                     type: integer
+                required:
+                - image
                 type: object
               mqtt:
                 properties:
+                  image:
+                    type: string
                   replicas:
                     format: int32
                     type: integer
+                required:
+                - image
                 type: object
               webapp:
                 properties:
+                  image:
+                    type: string
                   replicas:
                     format: int32
                     type: integer
+                required:
+                - image
                 type: object
             type: object
           status:
