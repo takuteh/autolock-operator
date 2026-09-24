@@ -10,6 +10,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (r *AutolockReconciler) reconcileConfigMap(
@@ -43,6 +44,10 @@ func (r *AutolockReconciler) reconcileConfigMap(
 		},
 		&existing,
 	)
+
+	if err := ctrl.SetControllerReference(autolock, configMap, r.Scheme); err != nil {
+		return err
+	}
 
 	//存在しなければ作成
 	if err != nil {
