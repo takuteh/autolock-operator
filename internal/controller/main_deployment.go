@@ -10,6 +10,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (r *AutolockReconciler) reconcileMainDeployment(
@@ -79,6 +80,11 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 		},
 		&existingDeployment,
 	)
+
+	if err := ctrl.SetControllerReference(autolock, deployment, r.Scheme); err != nil {
+		return err
+	}
+
 	//存在しなければ作成
 	if err != nil {
 		if apierrors.IsNotFound(err) {
