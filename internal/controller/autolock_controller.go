@@ -27,6 +27,7 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	"encoding/json"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -118,6 +119,63 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	existing.Data = configMap.Data
 
 	if err := r.Update(ctx, &existing); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	privileged := true
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "autolock-main",
+			Namespace: autolock.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &autolock.Spec.Main.Replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": "autolock-main",
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"app": "autolock-main",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "autolock",
+							Image: "nginx",
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privileged,
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "autolock-config",
+									MountPath: "/home/pi/autolock/gear_version/etc/autolock_setting.json",
+									SubPath:   "autolock_setting.json",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "autolock-config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "autolock-config",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if err := r.Create(ctx, deployment); err != nil {
 		return ctrl.Result{}, err
 	}
 
