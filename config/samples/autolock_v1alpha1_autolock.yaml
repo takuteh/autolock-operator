@@ -4,18 +4,45 @@ metadata:
   name: autolock-sample
 spec:
   main:
-    config:
-      autolock: true
-      timeout_seq: 300
-      ignore_clsw: false
-      rotate_direction: "left"
-      authorize_internal_users: false
-      authorize_external_users: true
     replicas: 2
     image: nginx
+    config:
+      main:
+        autolock: true
+        timeout_seq: 300
+        ignore_clsw: false
+        rotate_direction: "left"
+        authorize_internal_users: false
+        authorize_external_users: true
+      mqtt:
+        broker_address: autolock-mqtt-broker
+        mqtt_port: 1883
+
+        publish:
+          boot:
+            message: start
+            topic: /autolock/boot
+
+        subscribe:
+          change_config:
+            topic: /autolock/change_conf
+          close:
+            message: "1"
+            topic: /door/close
+          open:
+            message: "1"
+            topic: /door/open
+          relay_off:
+            message: "1"
+            topic: /door/relay_off
+          relay_on:
+            message: "1"
+            topic: /door/relay_on
 
   webapp:
     replicas: 3
 
   mqtt:
+    image: 
     replicas: 3
+      

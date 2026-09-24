@@ -43,25 +43,111 @@ spec:
                 properties:
                   config:
                     properties:
-                      authorize_external_users:
-                        type: boolean
-                      authorize_internal_users:
-                        type: boolean
-                      autolock:
-                        type: boolean
-                      ignore_clsw:
-                        type: boolean
-                      rotate_direction:
-                        type: string
-                      timeout_seq:
-                        type: integer
-                    required:
-                    - authorize_external_users
-                    - authorize_internal_users
-                    - autolock
-                    - ignore_clsw
-                    - rotate_direction
-                    - timeout_seq
+                      main:
+                        properties:
+                          authorize_external_users:
+                            type: boolean
+                          authorize_internal_users:
+                            type: boolean
+                          autolock:
+                            type: boolean
+                          ignore_clsw:
+                            type: boolean
+                          rotate_direction:
+                            type: string
+                          timeout_seq:
+                            type: integer
+                        required:
+                        - authorize_external_users
+                        - authorize_internal_users
+                        - autolock
+                        - ignore_clsw
+                        - rotate_direction
+                        - timeout_seq
+                        type: object
+                      mqtt:
+                        properties:
+                          broker_address:
+                            type: string
+                          mqtt_port:
+                            type: integer
+                          publish:
+                            properties:
+                              boot:
+                                properties:
+                                  message:
+                                    type: string
+                                  topic:
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                            required:
+                            - boot
+                            type: object
+                          subscribe:
+                            properties:
+                              change_config:
+                                properties:
+                                  topic:
+                                    type: string
+                                required:
+                                - topic
+                                type: object
+                              close:
+                                properties:
+                                  message:
+                                    type: string
+                                  topic:
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              open:
+                                properties:
+                                  message:
+                                    type: string
+                                  topic:
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              relay_off:
+                                properties:
+                                  message:
+                                    type: string
+                                  topic:
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              relay_on:
+                                properties:
+                                  message:
+                                    type: string
+                                  topic:
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                            required:
+                            - change_config
+                            - close
+                            - open
+                            - relay_off
+                            - relay_on
+                            type: object
+                        required:
+                        - broker_address
+                        - mqtt_port
+                        - publish
+                        - subscribe
+                        type: object
                     type: object
                   image:
                     type: string

@@ -31,9 +31,14 @@ type AutolockSpec struct {
 }
 
 type MainSpec struct {
-	Image    string     `json:"image"`
-	Config   MainConfig `json:"config,omitempty"`
-	Replicas int32      `json:"replicas,omitempty"`
+	Image    string `json:"image"`
+	Config   Config `json:"config,omitempty"`
+	Replicas int32  `json:"replicas,omitempty"`
+}
+
+type Config struct {
+	MainConfig MainConfig `json:"main,omitempty"`
+	MQTTConfig MQTTConfig `json:"mqtt,omitempty"`
 }
 
 type MainConfig struct {
@@ -43,6 +48,34 @@ type MainConfig struct {
 	RotateDirection        string `json:"rotate_direction"`
 	AuthorizeInternalUsers bool   `json:"authorize_internal_users"`
 	AuthorizeExternalUsers bool   `json:"authorize_external_users"`
+}
+
+type MQTTConfig struct {
+	BrokerAddress string        `json:"broker_address"`
+	MQTTPort      int           `json:"mqtt_port"`
+	Publish       MQTTPublish   `json:"publish"`
+	Subscribe     MQTTSubscribe `json:"subscribe"`
+}
+
+type MQTTPublish struct {
+	Boot MQTTMessage `json:"boot"`
+}
+
+type MQTTSubscribe struct {
+	ChangeConfig MQTTTopicMessage `json:"change_config"`
+	Close        MQTTMessage      `json:"close"`
+	Open         MQTTMessage      `json:"open"`
+	RelayOff     MQTTMessage      `json:"relay_off"`
+	RelayOn      MQTTMessage      `json:"relay_on"`
+}
+
+type MQTTMessage struct {
+	Message string `json:"message"`
+	Topic   string `json:"topic"`
+}
+
+type MQTTTopicMessage struct {
+	Topic string `json:"topic"`
 }
 
 type WebappSpec struct {
