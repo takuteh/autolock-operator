@@ -40,6 +40,7 @@ type AutolockReconciler struct {
 // +kubebuilder:rbac:groups=autolock.takuteh.uk,resources=autolocks/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;create;update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;create;update
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;create;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
