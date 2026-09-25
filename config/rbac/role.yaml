@@ -8,10 +8,13 @@ rules:
   - ""
   resources:
   - configmaps
+  - services
   verbs:
   - create
   - get
+  - list
   - update
+  - watch
 - apiGroups:
   - apps
   resources:
@@ -19,7 +22,9 @@ rules:
   verbs:
   - create
   - get
+  - list
   - update
+  - watch
 - apiGroups:
   - autolock.takuteh.uk
   resources:

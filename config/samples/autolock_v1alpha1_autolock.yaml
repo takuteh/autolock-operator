@@ -40,6 +40,7 @@ spec:
             topic: /door/relay_on
 
   webapp:
+    image: takuteh/autolock_webapp_img
     replicas: 3
 
   mqtt:
