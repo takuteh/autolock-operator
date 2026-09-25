@@ -76,6 +76,10 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	if err := r.reconcileMQTTService(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -84,6 +88,7 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&autolockv1alpha1.Autolock{}).
 		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
 		Owns(&corev1.ConfigMap{}).
 		Named("autolock").
 		Complete(r)
