@@ -43,6 +43,6 @@ spec:
     replicas: 3
 
   mqtt:
-    image: 
+    image: takuteh/autolock_mqtt_broker_img:latest
     replicas: 3
       
