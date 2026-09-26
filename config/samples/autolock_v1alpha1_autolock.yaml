@@ -46,7 +46,17 @@ spec:
     ingress:
       enabled: true
       className: traefik
-      host: autolock.local
+      host: autolock.webapp
+      path: /
+      pathType: Prefix
+
+  webhook:
+    image: nginx
+    replicas: 3
+    ingress:
+      enabled: true
+      className: traefik
+      host: autolock.webhook
       path: /
       pathType: Prefix
 

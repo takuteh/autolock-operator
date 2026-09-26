@@ -25,10 +25,11 @@ import (
 
 // AutolockSpec defines the desired state of Autolock.
 type AutolockSpec struct {
-	Webapp WebappSpec `json:"webapp,omitempty"`
-	Main   MainSpec   `json:"main,omitempty"`
-	MQTT   MQTTSpec   `json:"mqtt,omitempty"`
-	AuthDB AuthDBSpec `json:"authdb,omitempty"`
+	Webapp  WebappSpec  `json:"webapp,omitempty"`
+	Main    MainSpec    `json:"main,omitempty"`
+	MQTT    MQTTSpec    `json:"mqtt,omitempty"`
+	AuthDB  AuthDBSpec  `json:"authdb,omitempty"`
+	Webhook WebhookSpec `json:"webhook,omitempty"`
 }
 
 type MainSpec struct {
@@ -80,6 +81,12 @@ type MQTTTopicMessage struct {
 }
 
 type WebappSpec struct {
+	Image    string      `json:"image"`
+	Replicas int32       `json:"replicas,omitempty"`
+	Ingress  IngressSpec `json:"ingress,omitempty"`
+}
+
+type WebhookSpec struct {
 	Image    string      `json:"image"`
 	Replicas int32       `json:"replicas,omitempty"`
 	Ingress  IngressSpec `json:"ingress,omitempty"`

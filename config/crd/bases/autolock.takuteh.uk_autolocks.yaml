@@ -203,6 +203,32 @@ spec:
                 required:
                 - image
                 type: object
+              webhook:
+                properties:
+                  image:
+                    type: string
+                  ingress:
+                    properties:
+                      className:
+                        type: string
+                      enabled:
+                        type: boolean
+                      host:
+                        type: string
+                      path:
+                        type: string
+                      pathType:
+                        type: string
+                    required:
+                    - enabled
+                    - host
+                    type: object
+                  replicas:
+                    format: int32
+                    type: integer
+                required:
+                - image
+                type: object
             type: object
           status:
             description: AutolockStatus defines the observed state of Autolock.
