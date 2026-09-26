@@ -28,6 +28,7 @@ type AutolockSpec struct {
 	Webapp WebappSpec `json:"webapp,omitempty"`
 	Main   MainSpec   `json:"main,omitempty"`
 	MQTT   MQTTSpec   `json:"mqtt,omitempty"`
+	Authdb AuthdbSpec `json:"authdb,omitempty"`
 }
 
 type MainSpec struct {
@@ -95,6 +96,11 @@ type IngressSpec struct {
 type MQTTSpec struct {
 	Image    string `json:"image"`
 	Replicas int32  `json:"replicas,omitempty"`
+}
+
+type AuthdbSpec struct{
+    Image      string `json:"image"`
+	SecretName string `json:"secretName"`
 }
 
 // AutolockStatus defines the observed state of Autolock.

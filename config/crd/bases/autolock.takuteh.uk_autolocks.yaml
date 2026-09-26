@@ -39,6 +39,16 @@ spec:
           spec:
             description: AutolockSpec defines the desired state of Autolock.
             properties:
+              authdb:
+                properties:
+                  image:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - image
+                - secretName
+                type: object
               main:
                 properties:
                   config:

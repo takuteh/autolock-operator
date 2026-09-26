@@ -54,3 +54,7 @@ spec:
     image: eclipse-mosquitto
     replicas: 3
       
+  authdb:
+    image: mariadb:latest
+    secretName: autolock-auth-db-secret
+
