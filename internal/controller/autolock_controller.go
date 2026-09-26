@@ -66,11 +66,12 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.reconcileConfigMap(ctx, &autolock); err != nil {
+	mainConfigHash, err := r.reconcileConfigMap(ctx, &autolock)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileMainDeployment(ctx, &autolock); err != nil {
+	if err := r.reconcileMainDeployment(ctx, &autolock, mainConfigHash); err != nil {
 		return ctrl.Result{}, err
 	}
 

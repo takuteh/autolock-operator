@@ -16,6 +16,7 @@ import (
 func (r *AutolockReconciler) reconcileMainDeployment(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
+	configHash string,
 ) error {
 	privileged := true
 	deployment := &appsv1.Deployment{
@@ -34,6 +35,9 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"app": "autolock-main",
+					},
+					Annotations: map[string]string{
+						"autolock/config-hash": configHash,
 					},
 				},
 				Spec: corev1.PodSpec{

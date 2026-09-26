@@ -10,17 +10,18 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (r *AutolockReconciler) reconcileConfigMap(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
-) error {
+) (string, error) {
 	//CRから取得したmain設定をjson化し,jsonDataに格納
 	jsonData, err := json.Marshal(autolock.Spec.Main.Config)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	//main設定用cmを作成
@@ -46,28 +47,29 @@ func (r *AutolockReconciler) reconcileConfigMap(
 	)
 
 	if err := ctrl.SetControllerReference(autolock, configMap, r.Scheme); err != nil {
-		return err
+		return "", err
 	}
 
 	//存在しなければ作成
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			if err = r.Create(ctx, configMap); err != nil {
-				return err
+				return "", err
 			}
 
-			return nil
+			return configHash(autolock.Spec.Main.Config)
 		}
 
-		return err
+		return "", err
 	}
 
-	// 存在する → 更新
-	existing.Data = configMap.Data
-
-	if err := r.Update(ctx, &existing); err != nil {
-		return err
+	// 存在する場合、内容に変更があれば更新
+	if !reflect.DeepEqual(existing.Data, configMap.Data) {
+		existing.Data = configMap.Data
+		if err := r.Update(ctx, &existing); err != nil {
+			return "", err
+		}
 	}
 
-	return nil
+	return configHash(autolock.Spec.Main.Config)
 }
