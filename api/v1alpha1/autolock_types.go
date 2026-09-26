@@ -79,8 +79,17 @@ type MQTTTopicMessage struct {
 }
 
 type WebappSpec struct {
-	Image    string `json:"image"`
-	Replicas int32  `json:"replicas,omitempty"`
+	Image    string      `json:"image"`
+	Replicas int32       `json:"replicas,omitempty"`
+	Ingress  IngressSpec `json:"ingress,omitempty"`
+}
+
+type IngressSpec struct {
+	Enabled   bool   `json:"enabled"`
+	ClassName string `json:"className,omitempty"`
+	Host      string `json:"host"`
+	Path      string `json:"path,omitempty"`
+	PathType  string `json:"pathType,omitempty"`
 }
 
 type MQTTSpec struct {

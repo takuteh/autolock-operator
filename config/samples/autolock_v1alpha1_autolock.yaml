@@ -2,6 +2,7 @@ apiVersion: autolock.takuteh.uk/v1alpha1
 kind: Autolock
 metadata:
   name: autolock-sample
+  namespace: autolock
 spec:
   main:
     replicas: 2
@@ -42,6 +43,12 @@ spec:
   webapp:
     image: nginx
     replicas: 3
+    ingress:
+      enabled: true
+      className: traefik
+      host: autolock.local
+      path: /
+      pathType: Prefix
 
   mqtt:
     image: eclipse-mosquitto

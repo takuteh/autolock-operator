@@ -171,6 +171,22 @@ spec:
                 properties:
                   image:
                     type: string
+                  ingress:
+                    properties:
+                      className:
+                        type: string
+                      enabled:
+                        type: boolean
+                      host:
+                        type: string
+                      path:
+                        type: string
+                      pathType:
+                        type: string
+                    required:
+                    - enabled
+                    - host
+                    type: object
                   replicas:
                     format: int32
                     type: integer

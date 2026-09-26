@@ -27,6 +27,7 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 )
 
 // AutolockReconciler reconciles a Autolock object
@@ -89,6 +90,10 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	if err := r.reconcileIngress(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -99,6 +104,7 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.ConfigMap{}).
+		Owns(&networkingv1.Ingress{}).
 		Named("autolock").
 		Complete(r)
 }
