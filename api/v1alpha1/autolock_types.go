@@ -28,7 +28,7 @@ type AutolockSpec struct {
 	Webapp WebappSpec `json:"webapp,omitempty"`
 	Main   MainSpec   `json:"main,omitempty"`
 	MQTT   MQTTSpec   `json:"mqtt,omitempty"`
-	Authdb AuthdbSpec `json:"authdb,omitempty"`
+	AuthDB AuthDBSpec `json:"authdb,omitempty"`
 }
 
 type MainSpec struct {
@@ -98,8 +98,8 @@ type MQTTSpec struct {
 	Replicas int32  `json:"replicas,omitempty"`
 }
 
-type AuthdbSpec struct{
-    Image      string `json:"image"`
+type AuthDBSpec struct {
+	Image      string `json:"image"`
 	SecretName string `json:"secretName"`
 }
 

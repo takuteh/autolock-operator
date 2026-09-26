@@ -94,6 +94,10 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	if err := r.reconcileAuthDBStatefulSet(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -105,6 +109,7 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&networkingv1.Ingress{}).
+		Owns(&appsv1.StatefulSet{}).
 		Named("autolock").
 		Complete(r)
 }
