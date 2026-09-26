@@ -16,6 +16,7 @@ import (
 func (r *AutolockReconciler) reconcileWebappDeployment(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
+	configHash string,
 ) error {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -33,6 +34,9 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"app": "autolock-webapp",
+					},
+					Annotations: map[string]string{
+						"autolock/config-hash": configHash,
 					},
 				},
 				Spec: corev1.PodSpec{

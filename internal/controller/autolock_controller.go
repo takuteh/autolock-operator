@@ -83,7 +83,7 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileWebappDeployment(ctx, &autolock); err != nil {
+	if err := r.reconcileWebappDeployment(ctx, &autolock, mainConfigHash); err != nil {
 		return ctrl.Result{}, err
 	}
 
