@@ -10,6 +10,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -57,14 +58,14 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 	}
 
 	//クラスタからdeploymentを取得
-	var existingDeployment appsv1.Deployment
+	var existing appsv1.Deployment
 	err := r.Get(
 		ctx,
 		types.NamespacedName{
 			Name:      "autolock-webapp",
 			Namespace: autolock.Namespace,
 		},
-		&existingDeployment,
+		&existing,
 	)
 
 	if err := ctrl.SetControllerReference(autolock, deployment, r.Scheme); err != nil {
@@ -84,11 +85,12 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 		return err
 	}
 
-	// 存在する → 更新
-	existingDeployment.Spec = deployment.Spec
-
-	if err := r.Update(ctx, &existingDeployment); err != nil {
-		return err
+	// 存在する場合、内容に変更があれば更新
+	if !reflect.DeepEqual(existing.Spec, deployment.Spec) {
+		existing.Spec = deployment.Spec
+		if err := r.Update(ctx, &existing); err != nil {
+			return err
+		}
 	}
 
 	return nil

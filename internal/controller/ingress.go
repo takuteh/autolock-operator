@@ -9,6 +9,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -60,7 +61,7 @@ func (r *AutolockReconciler) reconcileIngress(
 	}
 
 	// クラスタからIngressを取得
-	var existingIngress networkingv1.Ingress
+	var existing networkingv1.Ingress
 
 	err := r.Get(
 		ctx,
@@ -68,7 +69,7 @@ func (r *AutolockReconciler) reconcileIngress(
 			Name:      "autolock-webapp",
 			Namespace: autolock.Namespace,
 		},
-		&existingIngress,
+		&existing,
 	)
 
 	// OwnerReferenceを設定
@@ -93,11 +94,12 @@ func (r *AutolockReconciler) reconcileIngress(
 		return err
 	}
 
-	// 存在する → 更新
-	existingIngress.Spec = ingress.Spec
-
-	if err := r.Update(ctx, &existingIngress); err != nil {
-		return err
+	// 存在する場合、内容に変更があれば更新
+	if !reflect.DeepEqual(existing.Spec, ingress.Spec) {
+		existing.Spec = ingress.Spec
+		if err := r.Update(ctx, &existing); err != nil {
+			return err
+		}
 	}
 
 	return nil

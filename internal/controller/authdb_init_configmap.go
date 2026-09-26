@@ -9,6 +9,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -36,14 +37,14 @@ func (r *AutolockReconciler) reconcileAuthDBInitConfigMap(
 	}
 
 	//クラスタからcmを取得
-	var existingConfigMap corev1.ConfigMap
+	var existing corev1.ConfigMap
 	err := r.Get(
 		ctx,
 		types.NamespacedName{
 			Name:      "autolock-auth-db-init",
 			Namespace: autolock.Namespace,
 		},
-		&existingConfigMap,
+		&existing,
 	)
 
 	if err := ctrl.SetControllerReference(autolock, configMap, r.Scheme); err != nil {
@@ -63,11 +64,12 @@ func (r *AutolockReconciler) reconcileAuthDBInitConfigMap(
 		return err
 	}
 
-	// 存在する → 更新
-	existingConfigMap.Data = configMap.Data
-
-	if err := r.Update(ctx, &existingConfigMap); err != nil {
-		return err
+	// 存在する場合、内容に変更があれば更新
+	if !reflect.DeepEqual(existing.Data, configMap.Data) {
+		existing.Data = configMap.Data
+		if err := r.Update(ctx, &existing); err != nil {
+			return err
+		}
 	}
 
 	return nil

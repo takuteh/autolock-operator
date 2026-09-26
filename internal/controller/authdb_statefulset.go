@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -108,7 +109,7 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 	}
 
 	// クラスタからStatefulSetを取得
-	var existingStatefulSet appsv1.StatefulSet
+	var existing appsv1.StatefulSet
 
 	err := r.Get(
 		ctx,
@@ -116,7 +117,7 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 			Name:      "autolock-auth-db",
 			Namespace: autolock.Namespace,
 		},
-		&existingStatefulSet,
+		&existing,
 	)
 
 	// OwnerReferenceを設定
@@ -142,10 +143,12 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 	}
 
 	// 存在する → 更新
-	existingStatefulSet.Spec = statefulSet.Spec
+	if !reflect.DeepEqual(existing.Spec, statefulSet.Spec) {
+		existing.Spec = statefulSet.Spec
 
-	if err := r.Update(ctx, &existingStatefulSet); err != nil {
-		return err
+		if err := r.Update(ctx, &existing); err != nil {
+			return err
+		}
 	}
 
 	return nil

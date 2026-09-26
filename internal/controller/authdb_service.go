@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -54,8 +55,16 @@ func (r *AutolockReconciler) reconcileAuthDBService(
 		return err
 	}
 
-	existing.Spec.Selector = service.Spec.Selector
-	existing.Spec.Ports = service.Spec.Ports
+	if !reflect.DeepEqual(existing.Spec.Selector, service.Spec.Selector) ||
+		!reflect.DeepEqual(existing.Spec.Ports, service.Spec.Ports) {
 
-	return r.Update(ctx, &existing)
+		existing.Spec.Selector = service.Spec.Selector
+		existing.Spec.Ports = service.Spec.Ports
+
+		if err := r.Update(ctx, &existing); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
