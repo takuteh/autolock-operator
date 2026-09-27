@@ -49,6 +49,15 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privileged,
 							},
+							EnvFrom: []corev1.EnvFromSource{
+								{
+									SecretRef: &corev1.SecretEnvSource{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: autolock.Spec.AuthDB.SecretName,
+										},
+									},
+								},
+							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "autolock-config",
