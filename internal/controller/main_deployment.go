@@ -54,6 +54,7 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 									Name:      "autolock-config",
 									MountPath: "/home/pi/autolock/gear_version/etc/autolock_setting.json",
 									SubPath:   "autolock_setting.json",
+									ReadOnly:  true,
 								},
 							},
 						},
