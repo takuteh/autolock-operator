@@ -110,6 +110,11 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.reconcileWebhookDeployment(ctx, &autolock, mainConfigHash); err != nil {
 		return ctrl.Result{}, err
 	}
+
+	if err := r.reconcileWebhookService(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 

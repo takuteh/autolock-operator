@@ -14,23 +14,23 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *AutolockReconciler) reconcileWebappService(
+func (r *AutolockReconciler) reconcileWebhookService(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) error {
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "autolock-webapp",
+			Name:      "autolock-webhook",
 			Namespace: autolock.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app": "autolock-webapp",
+				"app": "autolock-webhook",
 			},
 			Ports: []corev1.ServicePort{
 				{
-					Port:       8080,
+					Port:       3000,
 					TargetPort: intstr.FromInt32(80),
 				},
 			},
@@ -40,7 +40,7 @@ func (r *AutolockReconciler) reconcileWebappService(
 	var existing corev1.Service
 
 	err := r.Get(ctx, types.NamespacedName{
-		Name:      "autolock-webapp",
+		Name:      "autolock-webhook",
 		Namespace: autolock.Namespace,
 	}, &existing)
 
