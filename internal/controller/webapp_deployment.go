@@ -51,6 +51,15 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 									ContainerPort: 80,
 								},
 							},
+							EnvFrom: []corev1.EnvFromSource{
+								{
+									SecretRef: &corev1.SecretEnvSource{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: autolock.Spec.AuthDB.SecretName,
+										},
+									},
+								},
+							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "autolock-config",
