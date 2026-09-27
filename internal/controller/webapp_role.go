@@ -19,7 +19,7 @@ func (r *AutolockReconciler) reconcileWebappRole(
 ) error {
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      webappServiceAccountName,
+			Name:      "autolock-cr-editor",
 			Namespace: autolock.Namespace,
 		},
 		Rules: []rbacv1.PolicyRule{
