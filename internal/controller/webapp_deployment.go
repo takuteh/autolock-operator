@@ -51,6 +51,26 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 									ContainerPort: 80,
 								},
 							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "autolock-config",
+									MountPath: "/app/etc/autolock_setting.json",
+									SubPath:   "autolock_setting.json",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "autolock-config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "autolock-config",
+									},
+								},
+							},
 						},
 					},
 				},
