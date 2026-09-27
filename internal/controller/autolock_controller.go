@@ -28,6 +28,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 // AutolockReconciler reconciles a Autolock object
@@ -123,6 +124,9 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	if err := r.reconcileWebappRole(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -136,6 +140,7 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&networkingv1.Ingress{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.ServiceAccount{}).
+		Owns(&rbacv1.Role{}).
 		Named("autolock").
 		Complete(r)
 }
