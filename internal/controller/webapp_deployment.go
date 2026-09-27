@@ -41,6 +41,7 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 					},
 				},
 				Spec: corev1.PodSpec{
+					ServiceAccountName: "autolock-webapp",
 					Containers: []corev1.Container{
 						{
 							Name:  "webapp",
