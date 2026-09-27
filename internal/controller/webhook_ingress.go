@@ -13,18 +13,18 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *AutolockReconciler) reconcileIngress(
+func (r *AutolockReconciler) reconcileWebhookIngress(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) error {
-	cfg := autolock.Spec.Webapp.Ingress
+	cfg := autolock.Spec.Webhook.Ingress
 
 	// Ingressの定義を作成
 	pathType := networkingv1.PathType(cfg.PathType)
 
 	ingress := &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "autolock-webapp",
+			Name:      "autolock-webhook",
 			Namespace: autolock.Namespace,
 		},
 		Spec: networkingv1.IngressSpec{
@@ -40,9 +40,9 @@ func (r *AutolockReconciler) reconcileIngress(
 									PathType: &pathType,
 									Backend: networkingv1.IngressBackend{
 										Service: &networkingv1.IngressServiceBackend{
-											Name: "autolock-webapp",
+											Name: "autolock-webhook",
 											Port: networkingv1.ServiceBackendPort{
-												Number: 8080,
+												Number: 3000,
 											},
 										},
 									},
@@ -66,7 +66,7 @@ func (r *AutolockReconciler) reconcileIngress(
 	err := r.Get(
 		ctx,
 		types.NamespacedName{
-			Name:      "autolock-webapp",
+			Name:      "autolock-webhook",
 			Namespace: autolock.Namespace,
 		},
 		&existing,
