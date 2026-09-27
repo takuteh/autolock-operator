@@ -127,6 +127,11 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.reconcileWebappRole(ctx, &autolock); err != nil {
 		return ctrl.Result{}, err
 	}
+
+	if err := r.reconcileWebappRoleBinding(ctx, &autolock); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -141,6 +146,7 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&rbacv1.Role{}).
+		Owns(&rbacv1.RoleBinding{}).
 		Named("autolock").
 		Complete(r)
 }
