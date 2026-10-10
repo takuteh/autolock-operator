@@ -19,7 +19,6 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 	autolock *autolockv1alpha1.Autolock,
 	configHash string,
 ) error {
-	privileged := true
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-main",
@@ -46,9 +45,6 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 						{
 							Name:  "autolock",
 							Image: autolock.Spec.Main.Image,
-							SecurityContext: &corev1.SecurityContext{
-								Privileged: &privileged,
-							},
 							EnvFrom: []corev1.EnvFromSource{
 								{
 									SecretRef: &corev1.SecretEnvSource{
