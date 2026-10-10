@@ -66,7 +66,7 @@ spec:
                           rotate_direction:
                             type: string
                           timeout_seq:
-                            type: integer
+                            type: string
                         required:
                         - authorize_external_users
                         - authorize_internal_users

@@ -5,12 +5,12 @@ metadata:
   namespace: autolock
 spec:
   main:
-    replicas: 2
-    image: nginx
+    replicas: 1
+    image: takuteh/autolock_main_img:v2.1
     config:
       main:
         autolock: true
-        timeout_seq: 300
+        timeout_seq: "200"
         ignore_clsw: false
         rotate_direction: "left"
         authorize_internal_users: false

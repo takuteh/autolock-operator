@@ -45,7 +45,7 @@ type Config struct {
 
 type MainConfig struct {
 	AutoLock               bool   `json:"autolock"`
-	TimeoutSeq             int    `json:"timeout_seq"`
+	TimeoutSeq             string `json:"timeout_seq"`
 	IgnoreClsw             bool   `json:"ignore_clsw"`
 	RotateDirection        string `json:"rotate_direction"`
 	AuthorizeInternalUsers bool   `json:"authorize_internal_users"`

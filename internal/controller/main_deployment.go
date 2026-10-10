@@ -61,7 +61,7 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "autolock-config",
-									MountPath: "/home/pi/autolock/gear_version/etc/autolock_setting.json",
+									MountPath: "/home/app/autolock/gear_version/etc/autolock_setting.json",
 									SubPath:   "autolock_setting.json",
 									ReadOnly:  true,
 								},
