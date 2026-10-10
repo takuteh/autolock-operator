@@ -65,6 +65,12 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 									SubPath:   "autolock_setting.json",
 									ReadOnly:  true,
 								},
+								{
+									Name:      "autolock-secret",
+									MountPath: "/home/app/autolock/gear_version/etc/autolock_secret.json",
+									SubPath:   "autolock_secret.json",
+									ReadOnly:  true,
+								},
 							},
 						},
 					},
@@ -76,6 +82,14 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: "autolock-config",
 									},
+								},
+							},
+						},
+						{
+							Name: "autolock-secret",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: "autolock-secret",
 								},
 							},
 						},
