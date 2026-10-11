@@ -42,7 +42,7 @@ func (r *AutolockReconciler) reconcileIngress(
 										Service: &networkingv1.IngressServiceBackend{
 											Name: "autolock-webapp",
 											Port: networkingv1.ServiceBackendPort{
-												Number: 8080,
+												Number: 3000,
 											},
 										},
 									},

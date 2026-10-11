@@ -30,8 +30,8 @@ func (r *AutolockReconciler) reconcileWebappService(
 			},
 			Ports: []corev1.ServicePort{
 				{
-					Port:       8080,
-					TargetPort: intstr.FromInt32(80),
+					Port:       3000,
+					TargetPort: intstr.FromInt32(3000),
 				},
 			},
 		},

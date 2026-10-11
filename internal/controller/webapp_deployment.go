@@ -48,7 +48,7 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 							Image: autolock.Spec.Webapp.Image,
 							Ports: []corev1.ContainerPort{
 								{
-									ContainerPort: 80,
+									ContainerPort: 3000,
 								},
 							},
 							EnvFrom: []corev1.EnvFromSource{
