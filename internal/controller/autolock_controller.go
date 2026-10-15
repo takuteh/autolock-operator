@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
@@ -48,6 +49,7 @@ type AutolockReconciler struct {
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;create;update;list;watch
 // +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;create;update;list;watch
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;create;update;list;watch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -77,7 +79,12 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileMainDeployment(ctx, &autolock, mainConfigHash); err != nil {
+	autolockSecretHash, err := r.getSecretHash(ctx, autolock.Namespace, "autolock-secret")
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.reconcileMainDeployment(ctx, &autolock, mainConfigHash, autolockSecretHash); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -152,6 +159,10 @@ func (r *AutolockReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&rbacv1.Role{}).
 		Owns(&rbacv1.RoleBinding{}).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.findAutolockCRForSecret),
+		).
 		Named("autolock").
 		Complete(r)
 }

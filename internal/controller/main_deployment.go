@@ -18,6 +18,7 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 	configHash string,
+	autolockSecretHash string,
 ) error {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -37,7 +38,8 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 						"app": "autolock-main",
 					},
 					Annotations: map[string]string{
-						"autolock/config-hash": configHash,
+						"autolock/config-hash":          configHash,
+						"autolock/autolock-secret-hash": autolockSecretHash,
 					},
 				},
 				Spec: corev1.PodSpec{

@@ -47,7 +47,7 @@ func (r *AutolockReconciler) reconcileWebhookDeployment(
 							Image: autolock.Spec.Webhook.Image,
 							Ports: []corev1.ContainerPort{
 								{
-									ContainerPort: 80,
+									ContainerPort: 3000,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{

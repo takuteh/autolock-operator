@@ -31,7 +31,7 @@ func (r *AutolockReconciler) reconcileWebhookService(
 			Ports: []corev1.ServicePort{
 				{
 					Port:       3000,
-					TargetPort: intstr.FromInt32(80),
+					TargetPort: intstr.FromInt32(3000),
 				},
 			},
 		},
