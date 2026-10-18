@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *AutolockReconciler) reconcileIngress(
+func (r *AutolockReconciler) reconcileWebappIngress(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) error {

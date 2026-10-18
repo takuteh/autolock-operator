@@ -74,7 +74,7 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	mainConfigHash, err := r.reconcileConfigMap(ctx, &autolock)
+	mainConfigHash, err := r.reconcileMainConfigMap(ctx, &autolock)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -104,7 +104,7 @@ func (r *AutolockReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileIngress(ctx, &autolock); err != nil {
+	if err := r.reconcileWebappIngress(ctx, &autolock); err != nil {
 		return ctrl.Result{}, err
 	}
 

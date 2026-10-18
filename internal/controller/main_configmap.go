@@ -14,7 +14,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *AutolockReconciler) reconcileConfigMap(
+func (r *AutolockReconciler) reconcileMainConfigMap(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) (string, error) {
