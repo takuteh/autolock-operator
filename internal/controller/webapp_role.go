@@ -2,15 +2,13 @@ package controller
 
 import (
 	"context"
-	"reflect"
 
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	rbacv1 "k8s.io/api/rbac/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileWebappRole(
@@ -18,6 +16,10 @@ func (r *AutolockReconciler) reconcileWebappRole(
 	autolock *autolockv1alpha1.Autolock,
 ) error {
 	role := &rbacv1.Role{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "rbac.authorization.k8s.io/v1",
+			Kind:       "Role",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-cr-editor",
 			Namespace: autolock.Namespace,
@@ -40,35 +42,18 @@ func (r *AutolockReconciler) reconcileWebappRole(
 		},
 	}
 
-	if err := ctrl.SetControllerReference(autolock, role, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(
+		autolock,
+		role,
+		r.Scheme,
+	); err != nil {
 		return err
 	}
 
-	var existing rbacv1.Role
-	err := r.Get(
+	return r.Patch(
 		ctx,
-		types.NamespacedName{
-			Name:      role.Name,
-			Namespace: role.Namespace,
-		},
-		&existing,
+		role,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
 	)
-
-	// 存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return r.Create(ctx, role)
-		}
-		return err
-	}
-
-	// 内容に変更があれば更新
-	if !reflect.DeepEqual(existing.Rules, role.Rules) {
-		existing.Rules = role.Rules
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
