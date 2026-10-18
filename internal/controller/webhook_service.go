@@ -6,20 +6,21 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileWebhookService(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) error {
-
 	service := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-webhook",
 			Namespace: autolock.Namespace,
@@ -37,34 +38,18 @@ func (r *AutolockReconciler) reconcileWebhookService(
 		},
 	}
 
-	var existing corev1.Service
-
-	err := r.Get(ctx, types.NamespacedName{
-		Name:      "autolock-webhook",
-		Namespace: autolock.Namespace,
-	}, &existing)
-
-	if err := ctrl.SetControllerReference(autolock, service, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(
+		autolock,
+		service,
+		r.Scheme,
+	); err != nil {
 		return err
 	}
 
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return r.Create(ctx, service)
-		}
-		return err
-	}
-
-	if !reflect.DeepEqual(existing.Spec.Selector, service.Spec.Selector) ||
-		!reflect.DeepEqual(existing.Spec.Ports, service.Spec.Ports) {
-
-		existing.Spec.Selector = service.Spec.Selector
-		existing.Spec.Ports = service.Spec.Ports
-
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return r.Patch(
+		ctx,
+		service,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
+	)
 }
