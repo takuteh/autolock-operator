@@ -41,7 +41,7 @@ spec:
             topic: /door/relay_on
 
   webapp:
-    image: takuteh/autolock_webapp:v0.26
+    image: takuteh/autolock_webapp:v0.27
     replicas: 3
     ingress:
       enabled: true
