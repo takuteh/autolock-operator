@@ -7,12 +7,11 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func int32Ptr(v int32) *int32 {
@@ -24,6 +23,10 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 	autolock *autolockv1alpha1.Autolock,
 ) error {
 	statefulSet := &appsv1.StatefulSet{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "StatefulSet",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-auth-db",
 			Namespace: autolock.Namespace,
@@ -108,20 +111,7 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 		},
 	}
 
-	// クラスタからStatefulSetを取得
-	var existing appsv1.StatefulSet
-
-	err := r.Get(
-		ctx,
-		types.NamespacedName{
-			Name:      "autolock-auth-db",
-			Namespace: autolock.Namespace,
-		},
-		&existing,
-	)
-
-	// OwnerReferenceを設定
-	if err := ctrl.SetControllerReference(
+	if err := controllerutil.SetControllerReference(
 		autolock,
 		statefulSet,
 		r.Scheme,
@@ -129,27 +119,10 @@ func (r *AutolockReconciler) reconcileAuthDBStatefulSet(
 		return err
 	}
 
-	// 存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = r.Create(ctx, statefulSet); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		return err
-	}
-
-	// 存在する → 更新
-	if !reflect.DeepEqual(existing.Spec, statefulSet.Spec) {
-		existing.Spec = statefulSet.Spec
-
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return r.Patch(
+		ctx,
+		statefulSet,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
+	)
 }
