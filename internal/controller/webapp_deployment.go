@@ -53,6 +53,20 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 									ContainerPort: 3000,
 								},
 							},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "AUTOLOCK_PLATFORM",
+									Value: "kubernetes",
+								},
+								{
+									Name:  "AUTOLOCK_NAMESPACE",
+									Value: autolock.Namespace,
+								},
+								{
+									Name:  "AUTOLOCK_CR_NAME",
+									Value: autolock.Name,
+								},
+							},
 							EnvFrom: []corev1.EnvFromSource{
 								{
 									SecretRef: &corev1.SecretEnvSource{
