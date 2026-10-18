@@ -7,7 +7,7 @@ spec:
   main:
     replicas: 1
     image: takuteh/autolock_main_img:v2.1
-    pigpioHost: "10.0.0.235"
+    pigpioHost: "10.0.0.228"
     config:
       main:
         autolock: true

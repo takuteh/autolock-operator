@@ -41,14 +41,14 @@ type AutolockReconciler struct {
 // +kubebuilder:rbac:groups=autolock.takuteh.uk,resources=autolocks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=autolock.takuteh.uk,resources=autolocks/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=autolock.takuteh.uk,resources=autolocks/finalizers,verbs=update
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups="",resources=services,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;create;update;list;watch
-// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;create;update;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;create;update;list;watch;patch
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;create;update;list;watch;patch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
