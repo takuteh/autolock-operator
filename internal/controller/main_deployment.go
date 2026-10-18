@@ -49,6 +49,12 @@ func (r *AutolockReconciler) reconcileMainDeployment(
 						{
 							Name:  "autolock",
 							Image: autolock.Spec.Main.Image,
+							Env: []corev1.EnvVar{
+								{
+									Name:  "PIGPIO_HOST",
+									Value: autolock.Spec.Main.PigpioHost,
+								},
+							},
 							EnvFrom: []corev1.EnvFromSource{
 								{
 									SecretRef: &corev1.SecretEnvSource{

@@ -158,14 +158,21 @@ spec:
                         - publish
                         - subscribe
                         type: object
+                    required:
+                    - main
+                    - mqtt
                     type: object
                   image:
+                    type: string
+                  pigpioHost:
                     type: string
                   replicas:
                     format: int32
                     type: integer
                 required:
+                - config
                 - image
+                - pigpioHost
                 type: object
               mqtt:
                 properties:

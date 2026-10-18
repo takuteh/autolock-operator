@@ -33,14 +33,15 @@ type AutolockSpec struct {
 }
 
 type MainSpec struct {
-	Image    string `json:"image"`
-	Config   Config `json:"config,omitempty"`
-	Replicas int32  `json:"replicas,omitempty"`
+	Image      string `json:"image"`
+	Config     Config `json:"config"`
+	Replicas   int32  `json:"replicas,omitempty"`
+	PigpioHost string `json:"pigpioHost"`
 }
 
 type Config struct {
-	MainConfig MainConfig `json:"main,omitempty"`
-	MQTTConfig MQTTConfig `json:"mqtt,omitempty"`
+	MainConfig MainConfig `json:"main"`
+	MQTTConfig MQTTConfig `json:"mqtt"`
 }
 
 type MainConfig struct {
