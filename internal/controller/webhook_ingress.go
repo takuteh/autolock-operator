@@ -6,11 +6,10 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	networkingv1 "k8s.io/api/networking/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileWebhookIngress(
@@ -19,10 +18,18 @@ func (r *AutolockReconciler) reconcileWebhookIngress(
 ) error {
 	cfg := autolock.Spec.Webhook.Ingress
 
-	// Ingressの定義を作成
+	// Ingress が無効なら終了
+	if !cfg.Enabled {
+		return nil
+	}
+
 	pathType := networkingv1.PathType(cfg.PathType)
 
 	ingress := &networkingv1.Ingress{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "networking.k8s.io/v1",
+			Kind:       "Ingress",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-webhook",
 			Namespace: autolock.Namespace,
@@ -55,25 +62,8 @@ func (r *AutolockReconciler) reconcileWebhookIngress(
 		},
 	}
 
-	// Ingressが無効なら終了
-	if !cfg.Enabled {
-		return nil
-	}
-
-	// クラスタからIngressを取得
-	var existing networkingv1.Ingress
-
-	err := r.Get(
-		ctx,
-		types.NamespacedName{
-			Name:      "autolock-webhook",
-			Namespace: autolock.Namespace,
-		},
-		&existing,
-	)
-
-	// OwnerReferenceを設定
-	if err := ctrl.SetControllerReference(
+	// OwnerReference を設定
+	if err := controllerutil.SetControllerReference(
 		autolock,
 		ingress,
 		r.Scheme,
@@ -81,26 +71,11 @@ func (r *AutolockReconciler) reconcileWebhookIngress(
 		return err
 	}
 
-	// 存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = r.Create(ctx, ingress); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		return err
-	}
-
-	// 存在する場合、内容に変更があれば更新
-	if !reflect.DeepEqual(existing.Spec, ingress.Spec) {
-		existing.Spec = ingress.Spec
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	// Server-Side Apply
+	return r.Patch(
+		ctx,
+		ingress,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
+	)
 }
