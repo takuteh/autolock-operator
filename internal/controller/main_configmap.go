@@ -7,25 +7,27 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileMainConfigMap(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) (string, error) {
-	//CRから取得したmain設定をjson化し,jsonDataに格納
+	// CR の main 設定を JSON 化
 	jsonData, err := json.Marshal(autolock.Spec.Main.Config)
 	if err != nil {
 		return "", err
 	}
 
-	//main設定用cmを作成
+	// main 設定用 ConfigMap
 	configMap := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-config",
 			Namespace: autolock.Namespace,
@@ -35,41 +37,23 @@ func (r *AutolockReconciler) reconcileMainConfigMap(
 		},
 	}
 
-	//クラスタからcmを取得
-	var existing corev1.ConfigMap
-	err = r.Get(
+	if err := controllerutil.SetControllerReference(
+		autolock,
+		configMap,
+		r.Scheme,
+	); err != nil {
+		return "", err
+	}
+
+	if err := r.Patch(
 		ctx,
-		types.NamespacedName{
-			Name:      "autolock-config",
-			Namespace: autolock.Namespace,
-		},
-		&existing,
-	)
-
-	if err := ctrl.SetControllerReference(autolock, configMap, r.Scheme); err != nil {
+		configMap,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
+	); err != nil {
 		return "", err
 	}
 
-	//存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = r.Create(ctx, configMap); err != nil {
-				return "", err
-			}
-
-			return configHash(autolock.Spec.Main.Config)
-		}
-
-		return "", err
-	}
-
-	// 存在する場合、内容に変更があれば更新
-	if !reflect.DeepEqual(existing.Data, configMap.Data) {
-		existing.Data = configMap.Data
-		if err := r.Update(ctx, &existing); err != nil {
-			return "", err
-		}
-	}
-
+	// Apply 成功後に設定のハッシュを返す
 	return configHash(autolock.Spec.Main.Config)
 }

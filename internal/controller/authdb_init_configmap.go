@@ -6,19 +6,20 @@ import (
 	autolockv1alpha1 "github.com/takuteh/autolock-operator/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileAuthDBInitConfigMap(
 	ctx context.Context,
 	autolock *autolockv1alpha1.Autolock,
 ) error {
-	//DBの初期化用cmを作成
 	configMap := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-auth-db-init",
 			Namespace: autolock.Namespace,
@@ -36,41 +37,18 @@ func (r *AutolockReconciler) reconcileAuthDBInitConfigMap(
 		},
 	}
 
-	//クラスタからcmを取得
-	var existing corev1.ConfigMap
-	err := r.Get(
+	if err := controllerutil.SetControllerReference(
+		autolock,
+		configMap,
+		r.Scheme,
+	); err != nil {
+		return err
+	}
+
+	return r.Patch(
 		ctx,
-		types.NamespacedName{
-			Name:      "autolock-auth-db-init",
-			Namespace: autolock.Namespace,
-		},
-		&existing,
+		configMap,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
 	)
-
-	if err := ctrl.SetControllerReference(autolock, configMap, r.Scheme); err != nil {
-		return err
-	}
-
-	//存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = r.Create(ctx, configMap); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		return err
-	}
-
-	// 存在する場合、内容に変更があれば更新
-	if !reflect.DeepEqual(existing.Data, configMap.Data) {
-		existing.Data = configMap.Data
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
