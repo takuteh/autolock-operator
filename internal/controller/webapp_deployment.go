@@ -7,11 +7,9 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *AutolockReconciler) reconcileWebappDeployment(
@@ -20,6 +18,10 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 	configHash string,
 ) error {
 	deployment := &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "Deployment",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "autolock-webapp",
 			Namespace: autolock.Namespace,
@@ -87,40 +89,23 @@ func (r *AutolockReconciler) reconcileWebappDeployment(
 		},
 	}
 
-	//クラスタからdeploymentを取得
-	var existing appsv1.Deployment
-	err := r.Get(
+	// AutolockをDeploymentの所有者として設定
+	if err := controllerutil.SetControllerReference(
+		autolock,
+		deployment,
+		r.Scheme,
+	); err != nil {
+		return err
+	}
+
+	// Server-Side ApplyでDeploymentを適用
+	if err := r.Patch(
 		ctx,
-		types.NamespacedName{
-			Name:      "autolock-webapp",
-			Namespace: autolock.Namespace,
-		},
-		&existing,
-	)
-
-	if err := ctrl.SetControllerReference(autolock, deployment, r.Scheme); err != nil {
+		deployment,
+		client.Apply,
+		client.FieldOwner("autolock-operator"),
+	); err != nil {
 		return err
-	}
-
-	//存在しなければ作成
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = r.Create(ctx, deployment); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		return err
-	}
-
-	// 存在する場合、内容に変更があれば更新
-	if !reflect.DeepEqual(existing.Spec, deployment.Spec) {
-		existing.Spec = deployment.Spec
-		if err := r.Update(ctx, &existing); err != nil {
-			return err
-		}
 	}
 
 	return nil
