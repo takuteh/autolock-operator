@@ -1,0 +1,766 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+    control-plane: controller-manager
+  name: autolock-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: autolocks.autolock.takuteh.uk
+spec:
+  group: autolock.takuteh.uk
+  names:
+    kind: Autolock
+    listKind: AutolockList
+    plural: autolocks
+    singular: autolock
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Autolock is the Schema for the autolocks API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of the Autolock instance.
+            properties:
+              authdb:
+                description: AuthDB configures the database that stores user authentication
+                  information and expiration data.
+                properties:
+                  image:
+                    description: Image is the container image used by the authentication
+                      database.
+                    minLength: 1
+                    type: string
+                  secretName:
+                    description: SecretName is the name of the Kubernetes Secret containing
+                      database credentials.
+                    minLength: 1
+                    type: string
+                required:
+                - image
+                - secretName
+                type: object
+              main:
+                description: Main configures the main application that controls the
+                  Autolock mechanism.
+                properties:
+                  config:
+                    description: Config defines the operational settings and MQTT
+                      messaging configuration for the main application.
+                    properties:
+                      main:
+                        description: MainConfig defines the operational settings of
+                          the Autolock mechanism.
+                        properties:
+                          authorize_external_users:
+                            description: |-
+                              AuthorizeExternalUsers determines whether user authentication is required
+                              for requests received through external webhooks, such as LINE or Slack.
+                            type: boolean
+                          authorize_internal_users:
+                            description: |-
+                              AuthorizeInternalUsers determines whether user authentication is required
+                              for direct API requests received through MQTT from the same Layer 2 network.
+                            type: boolean
+                          autolock:
+                            description: |-
+                              AutoLock determines whether the reed switch is used to detect door opening and closing
+                              and enable automatic locking.
+                            type: boolean
+                          ignore_clsw:
+                            description: IgnoreClsw determines whether close-button
+                              input is ignored while the door is open.
+                            type: boolean
+                          rotate_direction:
+                            description: RotateDirection specifies the thumb-turn
+                              rotation direction.
+                            enum:
+                            - right
+                            - left
+                            type: string
+                          timeout_seq:
+                            description: |-
+                              TimeoutSeq specifies the time in seconds to wait before locking the door
+                              again when the lock has been released but the door has not been opened or closed.
+                              Set to "no" to disable the timeout.
+                            type: string
+                        required:
+                        - authorize_external_users
+                        - authorize_internal_users
+                        - autolock
+                        - ignore_clsw
+                        - rotate_direction
+                        - timeout_seq
+                        type: object
+                      mqtt:
+                        description: MQTTConfig defines the MQTT broker connection
+                          and messaging settings.
+                        properties:
+                          broker_address:
+                            description: BrokerAddress is the hostname or IP address
+                              of the MQTT broker.
+                            minLength: 1
+                            type: string
+                          mqtt_port:
+                            description: MQTTPort is the TCP port used to connect
+                              to the MQTT broker.
+                            maximum: 65535
+                            minimum: 1
+                            type: integer
+                          publish:
+                            description: Publish defines the MQTT messages published
+                              by the main application.
+                            properties:
+                              boot:
+                                description: Boot defines the MQTT message published
+                                  when the Autolock main application starts.
+                                properties:
+                                  message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
+                                    type: string
+                                  topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                            required:
+                            - boot
+                            type: object
+                          subscribe:
+                            description: Subscribe defines the MQTT topics and messages
+                              consumed by the main application.
+                            properties:
+                              change_config:
+                                description: ChangeConfig defines the topic used to
+                                  receive configuration change notifications.
+                                properties:
+                                  topic:
+                                    description: Topic is the MQTT topic used to receive
+                                      notifications.
+                                    type: string
+                                required:
+                                - topic
+                                type: object
+                              close:
+                                description: Close defines the MQTT topic and message
+                                  associated with the close operation.
+                                properties:
+                                  message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
+                                    type: string
+                                  topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              open:
+                                description: Open defines the MQTT topic and message
+                                  associated with the open operation.
+                                properties:
+                                  message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
+                                    type: string
+                                  topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              relay_off:
+                                description: RelayOff defines the MQTT topic and message
+                                  associated with turning the relay off.
+                                properties:
+                                  message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
+                                    type: string
+                                  topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                              relay_on:
+                                description: RelayOn defines the MQTT topic and message
+                                  associated with turning the relay on.
+                                properties:
+                                  message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
+                                    type: string
+                                  topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
+                                    type: string
+                                required:
+                                - message
+                                - topic
+                                type: object
+                            required:
+                            - change_config
+                            - close
+                            - open
+                            - relay_off
+                            - relay_on
+                            type: object
+                        required:
+                        - broker_address
+                        - mqtt_port
+                        - publish
+                        - subscribe
+                        type: object
+                    required:
+                    - main
+                    - mqtt
+                    type: object
+                  image:
+                    description: Image is the container image used by the main application.
+                    minLength: 1
+                    type: string
+                  pigpioHost:
+                    description: PigpioHost is the hostname or IP address of the pigpio
+                      daemon used to control GPIO.
+                    minLength: 1
+                    type: string
+                  replicas:
+                    description: Replicas is the desired number of main application
+                      replicas.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                required:
+                - config
+                - image
+                - pigpioHost
+                type: object
+              mqtt:
+                description: MQTT configures the MQTT broker used for communication
+                  between Autolock components.
+                properties:
+                  image:
+                    description: Image is the container image used by the MQTT broker.
+                    minLength: 1
+                    type: string
+                  replicas:
+                    description: Replicas is the desired number of MQTT broker replicas.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                required:
+                - image
+                type: object
+              webapp:
+                description: Webapp configures the web application used to manage
+                  Autolock settings and authorized users.
+                properties:
+                  image:
+                    description: Image is the container image used by the web application.
+                    minLength: 1
+                    type: string
+                  ingress:
+                    description: Ingress defines the external access configuration
+                      for the web application.
+                    properties:
+                      className:
+                        description: ClassName specifies the IngressClass used to
+                          handle the Ingress.
+                        type: string
+                      enabled:
+                        description: Enabled determines whether an Ingress resource
+                          is enabled for the application.
+                        type: boolean
+                      host:
+                        description: Host is the hostname used to route requests to
+                          the application.
+                        minLength: 1
+                        type: string
+                      path:
+                        description: Path is the URL path used to route requests to
+                          the application.
+                        type: string
+                      pathType:
+                        description: PathType specifies how the Ingress path is matched.
+                        enum:
+                        - Exact
+                        - Prefix
+                        - ImplementationSpecific
+                        type: string
+                    required:
+                    - enabled
+                    - host
+                    type: object
+                  replicas:
+                    description: Replicas is the desired number of web application
+                      replicas.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                required:
+                - image
+                type: object
+              webhook:
+                description: |-
+                  Webhook configures the application that receives requests from external services such as LINE and Slack
+                  and translates them into API requests for Autolock.
+                properties:
+                  image:
+                    description: Image is the container image used by the webhook
+                      application.
+                    minLength: 1
+                    type: string
+                  ingress:
+                    description: Ingress defines the external access configuration
+                      for the webhook application.
+                    properties:
+                      className:
+                        description: ClassName specifies the IngressClass used to
+                          handle the Ingress.
+                        type: string
+                      enabled:
+                        description: Enabled determines whether an Ingress resource
+                          is enabled for the application.
+                        type: boolean
+                      host:
+                        description: Host is the hostname used to route requests to
+                          the application.
+                        minLength: 1
+                        type: string
+                      path:
+                        description: Path is the URL path used to route requests to
+                          the application.
+                        type: string
+                      pathType:
+                        description: PathType specifies how the Ingress path is matched.
+                        enum:
+                        - Exact
+                        - Prefix
+                        - ImplementationSpecific
+                        type: string
+                    required:
+                    - enabled
+                    - host
+                    type: object
+                  replicas:
+                    description: Replicas is the desired number of webhook application
+                      replicas.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                required:
+                - image
+                type: object
+            type: object
+          status:
+            description: Status reports the observed state of the Autolock instance.
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-controller-manager
+  namespace: autolock-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-leader-election-role
+  namespace: autolock-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-autolock-admin-role
+rules:
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks
+  verbs:
+  - '*'
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-autolock-editor-role
+rules:
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-autolock-viewer-role
+rules:
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: autolock-operator-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - autolock.takuteh.uk
+  resources:
+  - autolocks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  - roles
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: autolock-operator-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: autolock-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-leader-election-rolebinding
+  namespace: autolock-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: autolock-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: autolock-operator-controller-manager
+  namespace: autolock-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+  name: autolock-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: autolock-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: autolock-operator-controller-manager
+  namespace: autolock-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: autolock-operator-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: autolock-operator-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: autolock-operator-controller-manager
+  namespace: autolock-operator-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+    control-plane: controller-manager
+  name: autolock-operator-controller-manager-metrics-service
+  namespace: autolock-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app.kubernetes.io/name: autolock-operator
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: autolock-operator
+    control-plane: controller-manager
+  name: autolock-operator-controller-manager
+  namespace: autolock-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: autolock-operator
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        app.kubernetes.io/name: autolock-operator
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        command:
+        - /manager
+        image: takuteh/autolock-operator:v1.0.0
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports: []
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts: []
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: autolock-operator-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes: []
