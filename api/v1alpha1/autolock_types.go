@@ -20,98 +20,207 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// AutolockSpec defines the desired state of Autolock.
+// AutolockSpec defines the desired configuration of an Autolock instance.
 type AutolockSpec struct {
-	Webapp  WebappSpec  `json:"webapp,omitempty"`
-	Main    MainSpec    `json:"main,omitempty"`
-	MQTT    MQTTSpec    `json:"mqtt,omitempty"`
-	AuthDB  AuthDBSpec  `json:"authdb,omitempty"`
+	// Webapp configures the web application used to manage Autolock settings and authorized users.
+	Webapp WebappSpec `json:"webapp,omitempty"`
+
+	// Main configures the main application that controls the Autolock mechanism.
+	Main MainSpec `json:"main,omitempty"`
+
+	// MQTT configures the MQTT broker used for communication between Autolock components.
+	MQTT MQTTSpec `json:"mqtt,omitempty"`
+
+	// AuthDB configures the database that stores user authentication information and expiration data.
+	AuthDB AuthDBSpec `json:"authdb,omitempty"`
+
+	// Webhook configures the application that receives requests from external services such as LINE and Slack
+	// and translates them into API requests for Autolock.
 	Webhook WebhookSpec `json:"webhook,omitempty"`
 }
 
+// MainSpec defines the configuration for the Autolock main application.
 type MainSpec struct {
-	Image      string `json:"image"`
-	Config     Config `json:"config"`
-	Replicas   int32  `json:"replicas,omitempty"`
+	// Image is the container image used by the main application.
+	// +kubebuilder:validation:MinLength=1
+	Image string `json:"image"`
+
+	// Config defines the operational settings and MQTT messaging configuration for the main application.
+	Config Config `json:"config"`
+
+	// Replicas is the desired number of main application replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
+
+	// PigpioHost is the hostname or IP address of the pigpio daemon used to control GPIO.
+	// +kubebuilder:validation:MinLength=1
 	PigpioHost string `json:"pigpioHost"`
 }
 
+// Config defines the configuration used by the main application.
 type Config struct {
+	// MainConfig defines the operational settings of the Autolock mechanism.
 	MainConfig MainConfig `json:"main"`
+
+	// MQTTConfig defines the MQTT broker connection and messaging settings.
 	MQTTConfig MQTTConfig `json:"mqtt"`
 }
 
+// MainConfig defines the operational settings of the Autolock mechanism.
 type MainConfig struct {
-	AutoLock               bool   `json:"autolock"`
-	TimeoutSeq             string `json:"timeout_seq"`
-	IgnoreClsw             bool   `json:"ignore_clsw"`
-	RotateDirection        string `json:"rotate_direction"`
-	AuthorizeInternalUsers bool   `json:"authorize_internal_users"`
-	AuthorizeExternalUsers bool   `json:"authorize_external_users"`
+	// AutoLock determines whether the reed switch is used to detect door opening and closing
+	// and enable automatic locking.
+	AutoLock bool `json:"autolock"`
+
+	// TimeoutSeq specifies the time in seconds to wait before locking the door
+	// again when the lock has been released but the door has not been opened or closed.
+	// Set to "no" to disable the timeout.
+	TimeoutSeq string `json:"timeout_seq"`
+
+	// IgnoreClsw determines whether close-button input is ignored while the door is open.
+	IgnoreClsw bool `json:"ignore_clsw"`
+
+	// RotateDirection specifies the thumb-turn rotation direction.
+	// +kubebuilder:validation:Enum=right;left
+	RotateDirection string `json:"rotate_direction"`
+
+	// AuthorizeInternalUsers determines whether user authentication is required
+	// for direct API requests received through MQTT from the same Layer 2 network.
+	AuthorizeInternalUsers bool `json:"authorize_internal_users"`
+
+	// AuthorizeExternalUsers determines whether user authentication is required
+	// for requests received through external webhooks, such as LINE or Slack.
+	AuthorizeExternalUsers bool `json:"authorize_external_users"`
 }
 
+// MQTTConfig defines the MQTT broker connection and messaging settings.
 type MQTTConfig struct {
-	BrokerAddress string        `json:"broker_address"`
-	MQTTPort      int           `json:"mqtt_port"`
-	Publish       MQTTPublish   `json:"publish"`
-	Subscribe     MQTTSubscribe `json:"subscribe"`
+	// BrokerAddress is the hostname or IP address of the MQTT broker.
+	// +kubebuilder:validation:MinLength=1
+	BrokerAddress string `json:"broker_address"`
+
+	// MQTTPort is the TCP port used to connect to the MQTT broker.
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	MQTTPort int `json:"mqtt_port"`
+
+	// Publish defines the MQTT messages published by the main application.
+	Publish MQTTPublish `json:"publish"`
+
+	// Subscribe defines the MQTT topics and messages consumed by the main application.
+	Subscribe MQTTSubscribe `json:"subscribe"`
 }
 
+// MQTTPublish defines the MQTT publish message configuration.
 type MQTTPublish struct {
+	// Boot defines the MQTT message published when the Autolock main application starts.
 	Boot MQTTMessage `json:"boot"`
 }
 
+// MQTTSubscribe defines the MQTT subscription configuration for Autolock operations.
 type MQTTSubscribe struct {
+	// ChangeConfig defines the topic used to receive configuration change notifications.
 	ChangeConfig MQTTTopicMessage `json:"change_config"`
-	Close        MQTTMessage      `json:"close"`
-	Open         MQTTMessage      `json:"open"`
-	RelayOff     MQTTMessage      `json:"relay_off"`
-	RelayOn      MQTTMessage      `json:"relay_on"`
+
+	// Close defines the MQTT topic and message associated with the close operation.
+	Close MQTTMessage `json:"close"`
+
+	// Open defines the MQTT topic and message associated with the open operation.
+	Open MQTTMessage `json:"open"`
+
+	// RelayOff defines the MQTT topic and message associated with turning the relay off.
+	RelayOff MQTTMessage `json:"relay_off"`
+
+	// RelayOn defines the MQTT topic and message associated with turning the relay on.
+	RelayOn MQTTMessage `json:"relay_on"`
 }
 
+// MQTTMessage defines an MQTT topic and its message payload.
 type MQTTMessage struct {
+	// Message is the payload published to the MQTT topic.
 	Message string `json:"message"`
-	Topic   string `json:"topic"`
-}
 
-type MQTTTopicMessage struct {
+	// Topic is the MQTT topic used to publish or receive the message.
 	Topic string `json:"topic"`
 }
 
+// MQTTTopicMessage defines an MQTT topic used to receive notifications without a configured message payload.
+type MQTTTopicMessage struct {
+	// Topic is the MQTT topic used to receive notifications.
+	Topic string `json:"topic"`
+}
+
+// WebappSpec defines the configuration of the Autolock web application.
 type WebappSpec struct {
-	Image    string      `json:"image"`
-	Replicas int32       `json:"replicas,omitempty"`
-	Ingress  IngressSpec `json:"ingress,omitempty"`
+	// Image is the container image used by the web application.
+	// +kubebuilder:validation:MinLength=1
+	Image string `json:"image"`
+
+	// Replicas is the desired number of web application replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
+
+	// Ingress defines the external access configuration for the web application.
+	Ingress IngressSpec `json:"ingress,omitempty"`
 }
 
+// WebhookSpec defines the configuration of the Autolock webhook application.
 type WebhookSpec struct {
-	Image    string      `json:"image"`
-	Replicas int32       `json:"replicas,omitempty"`
-	Ingress  IngressSpec `json:"ingress,omitempty"`
+	// Image is the container image used by the webhook application.
+	// +kubebuilder:validation:MinLength=1
+	Image string `json:"image"`
+
+	// Replicas is the desired number of webhook application replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
+
+	// Ingress defines the external access configuration for the webhook application.
+	Ingress IngressSpec `json:"ingress,omitempty"`
 }
 
+// IngressSpec defines the Ingress configuration for exposing an application.
 type IngressSpec struct {
-	Enabled   bool   `json:"enabled"`
+	// Enabled determines whether an Ingress resource is enabled for the application.
+	Enabled bool `json:"enabled"`
+
+	// ClassName specifies the IngressClass used to handle the Ingress.
 	ClassName string `json:"className,omitempty"`
-	Host      string `json:"host"`
-	Path      string `json:"path,omitempty"`
-	PathType  string `json:"pathType,omitempty"`
+
+	// Host is the hostname used to route requests to the application.
+	// +kubebuilder:validation:MinLength=1
+	Host string `json:"host"`
+
+	// Path is the URL path used to route requests to the application.
+	Path string `json:"path,omitempty"`
+
+	// PathType specifies how the Ingress path is matched.
+	// +kubebuilder:validation:Enum=Exact;Prefix;ImplementationSpecific
+	PathType string `json:"pathType,omitempty"`
 }
 
+// MQTTSpec defines the configuration of the MQTT broker workload.
 type MQTTSpec struct {
-	Image    string `json:"image"`
-	Replicas int32  `json:"replicas,omitempty"`
+	// Image is the container image used by the MQTT broker.
+	// +kubebuilder:validation:MinLength=1
+	Image string `json:"image"`
+
+	// Replicas is the desired number of MQTT broker replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
+// AuthDBSpec defines the configuration of the authentication database.
 type AuthDBSpec struct {
-	Image      string `json:"image"`
+	// Image is the container image used by the authentication database.
+	// +kubebuilder:validation:MinLength=1
+	Image string `json:"image"`
+
+	// SecretName is the name of the Kubernetes Secret containing database credentials.
+	// +kubebuilder:validation:MinLength=1
 	SecretName string `json:"secretName"`
 }
 
-// AutolockStatus defines the observed state of Autolock.
+// AutolockStatus defines the observed state of an Autolock instance.
 type AutolockStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -125,17 +234,22 @@ type Autolock struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AutolockSpec   `json:"spec,omitempty"`
+	// Spec defines the desired state of the Autolock instance.
+	Spec AutolockSpec `json:"spec,omitempty"`
+
+	// Status reports the observed state of the Autolock instance.
 	Status AutolockStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// AutolockList contains a list of Autolock.
+// AutolockList contains a list of Autolock resources.
 type AutolockList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Autolock `json:"items"`
+
+	// Items contains the Autolock resources in this list.
+	Items []Autolock `json:"items"`
 }
 
 func init() {

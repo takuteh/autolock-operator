@@ -37,35 +37,69 @@ spec:
           metadata:
             type: object
           spec:
-            description: AutolockSpec defines the desired state of Autolock.
+            description: Spec defines the desired state of the Autolock instance.
             properties:
               authdb:
+                description: AuthDB configures the database that stores user authentication
+                  information and expiration data.
                 properties:
                   image:
+                    description: Image is the container image used by the authentication
+                      database.
+                    minLength: 1
                     type: string
                   secretName:
+                    description: SecretName is the name of the Kubernetes Secret containing
+                      database credentials.
+                    minLength: 1
                     type: string
                 required:
                 - image
                 - secretName
                 type: object
               main:
+                description: Main configures the main application that controls the
+                  Autolock mechanism.
                 properties:
                   config:
+                    description: Config defines the operational settings and MQTT
+                      messaging configuration for the main application.
                     properties:
                       main:
+                        description: MainConfig defines the operational settings of
+                          the Autolock mechanism.
                         properties:
                           authorize_external_users:
+                            description: |-
+                              AuthorizeExternalUsers determines whether user authentication is required
+                              for requests received through external webhooks, such as LINE or Slack.
                             type: boolean
                           authorize_internal_users:
+                            description: |-
+                              AuthorizeInternalUsers determines whether user authentication is required
+                              for direct API requests received through MQTT from the same Layer 2 network.
                             type: boolean
                           autolock:
+                            description: |-
+                              AutoLock determines whether the reed switch is used to detect door opening and closing
+                              and enable automatic locking.
                             type: boolean
                           ignore_clsw:
+                            description: IgnoreClsw determines whether close-button
+                              input is ignored while the door is open.
                             type: boolean
                           rotate_direction:
+                            description: RotateDirection specifies the thumb-turn
+                              rotation direction.
+                            enum:
+                            - right
+                            - left
                             type: string
                           timeout_seq:
+                            description: |-
+                              TimeoutSeq specifies the time in seconds to wait before locking the door
+                              again when the lock has been released but the door has not been opened or closed.
+                              Set to "no" to disable the timeout.
                             type: string
                         required:
                         - authorize_external_users
@@ -76,18 +110,35 @@ spec:
                         - timeout_seq
                         type: object
                       mqtt:
+                        description: MQTTConfig defines the MQTT broker connection
+                          and messaging settings.
                         properties:
                           broker_address:
+                            description: BrokerAddress is the hostname or IP address
+                              of the MQTT broker.
+                            minLength: 1
                             type: string
                           mqtt_port:
+                            description: MQTTPort is the TCP port used to connect
+                              to the MQTT broker.
+                            maximum: 65535
+                            minimum: 1
                             type: integer
                           publish:
+                            description: Publish defines the MQTT messages published
+                              by the main application.
                             properties:
                               boot:
+                                description: Boot defines the MQTT message published
+                                  when the Autolock main application starts.
                                 properties:
                                   message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
                                     type: string
                                   topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
                                     type: string
                                 required:
                                 - message
@@ -97,49 +148,79 @@ spec:
                             - boot
                             type: object
                           subscribe:
+                            description: Subscribe defines the MQTT topics and messages
+                              consumed by the main application.
                             properties:
                               change_config:
+                                description: ChangeConfig defines the topic used to
+                                  receive configuration change notifications.
                                 properties:
                                   topic:
+                                    description: Topic is the MQTT topic used to receive
+                                      notifications.
                                     type: string
                                 required:
                                 - topic
                                 type: object
                               close:
+                                description: Close defines the MQTT topic and message
+                                  associated with the close operation.
                                 properties:
                                   message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
                                     type: string
                                   topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
                                     type: string
                                 required:
                                 - message
                                 - topic
                                 type: object
                               open:
+                                description: Open defines the MQTT topic and message
+                                  associated with the open operation.
                                 properties:
                                   message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
                                     type: string
                                   topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
                                     type: string
                                 required:
                                 - message
                                 - topic
                                 type: object
                               relay_off:
+                                description: RelayOff defines the MQTT topic and message
+                                  associated with turning the relay off.
                                 properties:
                                   message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
                                     type: string
                                   topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
                                     type: string
                                 required:
                                 - message
                                 - topic
                                 type: object
                               relay_on:
+                                description: RelayOn defines the MQTT topic and message
+                                  associated with turning the relay on.
                                 properties:
                                   message:
+                                    description: Message is the payload published
+                                      to the MQTT topic.
                                     type: string
                                   topic:
+                                    description: Topic is the MQTT topic used to publish
+                                      or receive the message.
                                     type: string
                                 required:
                                 - message
@@ -163,11 +244,19 @@ spec:
                     - mqtt
                     type: object
                   image:
+                    description: Image is the container image used by the main application.
+                    minLength: 1
                     type: string
                   pigpioHost:
+                    description: PigpioHost is the hostname or IP address of the pigpio
+                      daemon used to control GPIO.
+                    minLength: 1
                     type: string
                   replicas:
+                    description: Replicas is the desired number of main application
+                      replicas.
                     format: int32
+                    minimum: 0
                     type: integer
                 required:
                 - config
@@ -175,70 +264,124 @@ spec:
                 - pigpioHost
                 type: object
               mqtt:
+                description: MQTT configures the MQTT broker used for communication
+                  between Autolock components.
                 properties:
                   image:
+                    description: Image is the container image used by the MQTT broker.
+                    minLength: 1
                     type: string
                   replicas:
+                    description: Replicas is the desired number of MQTT broker replicas.
                     format: int32
+                    minimum: 0
                     type: integer
                 required:
                 - image
                 type: object
               webapp:
+                description: Webapp configures the web application used to manage
+                  Autolock settings and authorized users.
                 properties:
                   image:
+                    description: Image is the container image used by the web application.
+                    minLength: 1
                     type: string
                   ingress:
+                    description: Ingress defines the external access configuration
+                      for the web application.
                     properties:
                       className:
+                        description: ClassName specifies the IngressClass used to
+                          handle the Ingress.
                         type: string
                       enabled:
+                        description: Enabled determines whether an Ingress resource
+                          is enabled for the application.
                         type: boolean
                       host:
+                        description: Host is the hostname used to route requests to
+                          the application.
+                        minLength: 1
                         type: string
                       path:
+                        description: Path is the URL path used to route requests to
+                          the application.
                         type: string
                       pathType:
+                        description: PathType specifies how the Ingress path is matched.
+                        enum:
+                        - Exact
+                        - Prefix
+                        - ImplementationSpecific
                         type: string
                     required:
                     - enabled
                     - host
                     type: object
                   replicas:
+                    description: Replicas is the desired number of web application
+                      replicas.
                     format: int32
+                    minimum: 0
                     type: integer
                 required:
                 - image
                 type: object
               webhook:
+                description: |-
+                  Webhook configures the application that receives requests from external services such as LINE and Slack
+                  and translates them into API requests for Autolock.
                 properties:
                   image:
+                    description: Image is the container image used by the webhook
+                      application.
+                    minLength: 1
                     type: string
                   ingress:
+                    description: Ingress defines the external access configuration
+                      for the webhook application.
                     properties:
                       className:
+                        description: ClassName specifies the IngressClass used to
+                          handle the Ingress.
                         type: string
                       enabled:
+                        description: Enabled determines whether an Ingress resource
+                          is enabled for the application.
                         type: boolean
                       host:
+                        description: Host is the hostname used to route requests to
+                          the application.
+                        minLength: 1
                         type: string
                       path:
+                        description: Path is the URL path used to route requests to
+                          the application.
                         type: string
                       pathType:
+                        description: PathType specifies how the Ingress path is matched.
+                        enum:
+                        - Exact
+                        - Prefix
+                        - ImplementationSpecific
                         type: string
                     required:
                     - enabled
                     - host
                     type: object
                   replicas:
+                    description: Replicas is the desired number of webhook application
+                      replicas.
                     format: int32
+                    minimum: 0
                     type: integer
                 required:
                 - image
                 type: object
             type: object
           status:
-            description: AutolockStatus defines the observed state of Autolock.
+            description: Status reports the observed state of the Autolock instance.
             type: object
         type: object
     served: true
