@@ -228,3 +228,80 @@ Reconcile は、Autolock CR に記載された望ましい状態と Kubernetes �
 - Secret などの変更イベントから CR を特定する際は、Annotation などの明示的な対応関係を利用する。
 - 設定のハッシュ値は対象コンポーネントが参照する内容に基づいて計算し、無関係な設定変更によるロールアウトを避ける。
 - リソースの削除や再作成は、永続データや外部接続への影響を考慮し、必要な場合に限定する。
+
+# インストール手順
+
+以下では、`v1.0.0` を使用する例を示します。使用するバージョンに応じて URL 内のタグを変更してください。
+
+## 1. Operator のインストール
+
+GitHub Releases で公開しているインストールマニフェストを適用します。
+
+```bash
+kubectl apply -f https://github.com/takuteh/autolock-operator/releases/download/v1.0.0/install.yaml
+```
+
+## 2. Namespace の作成
+
+Autolock を配置する Namespace を作成します。
+
+```bash
+kubectl create namespace autolock
+```
+
+すでに存在する場合は、この手順を省略してください。
+
+## 3. Secret の準備
+
+認証 DB 用 Secret と Autolock 用 Secret のテンプレートをダウンロードします。
+
+```bash
+curl -fLO https://raw.githubusercontent.com/takuteh/autolock-operator/main/config/secrets/authdb-secret.yaml
+curl -fLO https://raw.githubusercontent.com/takuteh/autolock-operator/main/config/secrets/autolock-secret.yaml
+```
+
+ダウンロードしたファイルを編集し、実際の環境に合わせて認証情報を設定してください。編集後、Secret を作成します。
+
+```bash
+kubectl apply -f authdb-secret.yaml
+kubectl apply -f autolock-secret.yaml
+```
+
+Secret は `autolock` Namespace に作成してください。
+
+**注意:** 実際のパスワードやトークンを公開リポジトリにコミットしないでください。
+
+## 4. Autolock の Custom Resource の準備
+
+サンプル CR をダウンロードします。
+
+```bash
+curl -fLO https://raw.githubusercontent.com/takuteh/autolock-operator/main/config/samples/autolock_v1alpha1_autolock.yaml
+```
+
+CR の設定値を環境に合わせて編集します。
+編集後、CR を適用します。
+
+```bash
+kubectl apply -f autolock_v1alpha1_autolock.yaml
+```
+
+Operator は CR の内容に基づいて、Autolock に必要な Kubernetes リソースを作成・管理します。
+
+## 5. 起動状態の確認
+
+各リソースの状態を確認します。
+
+```bash
+kubectl get all -n autolock
+kubectl get ingress -n autolock
+kubectl get autolock -n autolock
+```
+
+Pod が正常に起動し、Ready 状態になっていることを確認してください。
+
+起動しない場合は、CR の設定値、Secret の内容、Operator のログを確認してください。
+
+
+
+Pod が正常に起動し、Ready 状態になっていることを確認してください。立ち上がらない場合はsecretかCRが正しく適用されていない可能性があります。
